@@ -18,13 +18,46 @@ const commands: Record<string, CommandFn> = {
 		}
 		return '';
 	},
-	ping: (args = []) => {
-		if (args.length === 0) return 'Usage: ping <url>';
-		const url = args[0];
-		fetch(url, { method: 'HEAD' })
-			.then(() => print(`Ping to ${url} successful.`))
-			.catch(() => print(`Ping to ${url} failed.`));
-		return 'Pinging...';
+	date: () => {
+		const now = new Date();
+
+		const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+		const months = [
+			"January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December"
+		];
+
+		const pad = (n: number) => n.toString().padStart(2, '0');
+
+		const dayName = weekdays[now.getDay()];
+		const monthName = months[now.getMonth()];
+		const monthNumber = pad(now.getMonth() + 1);
+		const day = pad(now.getDate());
+		const year = now.getFullYear();
+		const hours = pad(now.getHours());
+		const minutes = pad(now.getMinutes());
+		const seconds = pad(now.getSeconds());
+		const ms = now.getMilliseconds().toString().padStart(3, '0');
+
+		return `${dayName}, ${day}.${monthNumber}.${year} (${monthName}) ${hours}:${minutes}:${seconds}.${ms}`;
+	},
+	whoami: () => "kybe",
+	cat: () => {
+		return `
+      /\\_/\\  
+     ( o.o ) 
+      > ^ <
+    `;
+	},
+	calc: (args = []) => {
+		if (args.length === 0) return "Usage: calc <expression>";
+		const expr = args.join(' ');
+		try {
+			const result = Function(`"use strict"; return (${expr})`)();
+			return `${expr} = ${result}`;
+		} catch {
+			return "Invalid expression";
+		}
 	},
 	echo: (args) => args.join(' ')
 };
