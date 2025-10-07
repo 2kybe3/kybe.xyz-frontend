@@ -93,7 +93,7 @@ const commands: Record<string, CommandFn> = {
 			i++;
 			if (i > 15) {
 				clearInterval(interval);
-				term.style.transform = ""; // reset
+				term.style.transform = "";
 			}
 		}, 60);
 
@@ -103,7 +103,6 @@ const commands: Record<string, CommandFn> = {
 		if (args.length === 0) return "Usage: ascii <text>";
 		const text = args.join(" ").toUpperCase();
 
-		// Simple block letters A-Z
 		const letters: Record<string, string[]> = {
 			A: ["  A  ", " A A ", "AAAAA", "A   A", "A   A"],
 			B: ["BBBB ", "B   B", "BBBB ", "B   B", "BBBB "],
