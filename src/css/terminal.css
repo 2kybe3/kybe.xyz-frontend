@@ -1,0 +1,37 @@
+
+#terminal {
+	width: 100%;
+	max-width: 800px;
+	font-family: monospace;
+	color: var(--text-color);
+	background: var(--primary-color);
+	padding: 10px;
+	box-sizing: border-box;
+	overflow-y: auto;
+}
+
+.terminal-output .terminal-line,
+.prompt-wrapper {
+	font-family: monospace;
+	font-size: 1em;
+	line-height: 1.4;
+	white-space: pre-wrap;
+}
+
+.prompt-wrapper {
+	display: flex;
+}
+
+.prompt-symbol {
+	margin-right: 0;
+}
+
+.terminal-input {
+	flex: 1;
+	background: transparent;
+	border: none;
+	outline: none;
+	color: var(--text-color);
+	font-family: monospace;
+	font-size: 1em;
+}
