@@ -243,6 +243,58 @@ const commands: Record<string, CommandFn> = {
 		termEl.style.background = color.bg;
 		return `Terminal colors changed to ${command}`;
 	},
+	reverse: (args = []) => {
+		if (args.length === 0) return "Usage: reverse <text>";
+		return args.join(" ").split("").reverse().join("");
+	},
+	mock: (args = []) => {
+		if (args.length === 0) return "Usage: mock <text>";
+		const text = args.join(" ");
+		return text
+			.split("")
+			.map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase())
+			.join("");
+	},
+	spin: () => {
+		const spinLine = document.createElement('div');
+		spinLine.classList.add('terminal-line');
+		outputContainer.appendChild(spinLine);
+
+		const frames = ["|", "/", "-", "\\"];
+		let i = 0;
+		setInterval(() => {
+			spinLine.textContent = frames[i % frames.length];
+			term.scrollTop = term.scrollHeight;
+			i++;
+		}, 100);
+
+		return '';
+	},
+	invert: () => {
+		const termEl = document.getElementById('terminal') as HTMLDivElement;
+		if (!termEl) return "";
+		const currentText = getComputedStyle(termEl).color;
+		const currentBg = getComputedStyle(termEl).backgroundColor;
+		termEl.style.color = currentBg;
+		termEl.style.background = currentText;
+		return "Terminal colors inverted!";
+	},
+	"color-random": () => {
+		const termEl = document.getElementById('terminal') as HTMLDivElement;
+		if (!termEl) return "";
+		const randomColor = () => "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
+		termEl.style.color = randomColor();
+		termEl.style.background = randomColor();
+		return "Terminal colors changed randomly!";
+	},
+	"8ball": (args = []) => {
+		if (args.length === 0) return "Usage: 8ball <question>";
+		const answers = [
+			"It is certain", "Without a doubt", "You may rely on it", "Ask again later",
+			"Cannot predict now", "Don't count on it", "My sources say no", "Very doubtful"
+		];
+		return answers[Math.floor(Math.random() * answers.length)];
+	},
 	coinflip: () => Math.random() < 0.5 ? "Heads" : "Tails",
 };
 
