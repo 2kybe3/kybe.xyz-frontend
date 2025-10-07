@@ -1,0 +1,27 @@
+body {
+	font-family: monospace;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background: #000;
+	color: #0f0;
+	flex-direction: column;
+	text-align: center;
+}
+
+a.matrix-link {
+	color: #0f0;
+	text-decoration: none;
+	font-size: 2em;
+	margin-top: 1em;
+	transition: color 0.2s;
+}
+
+a.matrix-link:hover {
+	color: #8f8;
+}
+
+h1 {
+	margin-bottom: 0.5em;
+}
