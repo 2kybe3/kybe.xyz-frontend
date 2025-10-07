@@ -1,7 +1,6 @@
 
 #terminal {
 	width: 100%;
-	max-width: 800px;
 	font-family: monospace;
 	color: var(--text-color);
 	background: var(--primary-color);
@@ -10,12 +9,37 @@
 	overflow-y: auto;
 }
 
-.terminal-output .terminal-line,
-.prompt-wrapper {
+.terminal-output .terminal-line {
 	font-family: monospace;
 	font-size: 1em;
 	line-height: 1.4;
-	white-space: pre-wrap;
+	white-space: pre;
+	overflow-x: auto;
+}
+
+.terminal-output {
+	font-family: monospace;
+	white-space: pre;
+	overflow-x: auto;
+	overflow-y: auto;
+
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.terminal-output::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+	background-color: rgba(255,255,255,0.3);
+	border-radius: 4px;
+	border: 2px solid transparent;
 }
 
 .prompt-wrapper {
@@ -23,7 +47,7 @@
 }
 
 .prompt-symbol {
-	margin-right: 0;
+	margin-right: 5px;
 }
 
 .terminal-input {
@@ -31,7 +55,7 @@
 	background: transparent;
 	border: none;
 	outline: none;
-	color: var(--text-color);
+	color: inherit;
 	font-family: monospace;
 	font-size: 1em;
 }
