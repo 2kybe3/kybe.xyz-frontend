@@ -6,6 +6,30 @@ term.appendChild(outputContainer);
 
 type CommandFn = (args: string[]) => string;
 
+const commandHistory: string[] = JSON.parse(localStorage.getItem("commandHistory") || "[]");
+const aliases: Record<string, string> = JSON.parse(localStorage.getItem("aliases") || "{}");
+let currentDir = "/home/kybe";
+const fileSystem: Record<string, string[]> = {
+	"/": ["home", "usr", "var", "etc"],
+	"/home": ["kybe"],
+	"/home/kybe": ["documents", "downloads", "projects", "secret"],
+	"/home/kybe/secret": [".hiddenfile"],
+	"/home/kybe/documents": ["notes.txt", "todo.txt", "readme.md"],
+	"/home/kybe/downloads": ["file1.zip", "image.png"],
+	"/home/kybe/projects": ["terminal.js", "website.html"],
+	"/usr": ["bin", "lib", "share"],
+	"/var": ["log", "tmp"],
+	"/etc": ["config"]
+};
+const fileContents: Record<string, string> = JSON.parse(localStorage.getItem("fileContents") || JSON.stringify({
+	"/home/kybe/documents/notes.txt": "Remember to finish the terminal project!\nAdd more cool commands.\n",
+	"/home/kybe/documents/todo.txt": "- Learn TypeScript\n- Build awesome terminal\n- Add file system\n",
+	"/home/kybe/documents/readme.md": "# My Terminal\n\nThis is a custom web-based terminal.\n\n## Features\n- File system navigation\n- Command aliases\n- And much more!\n",
+	"/home/kybe/projects/terminal.js": "// Terminal implementation\nconsole.log('Hello, terminal!');\n",
+	"/home/kybe/projects/website.html": "<!DOCTYPE html>\n<html>\n<head><title>My Site</title></head>\n<body><h1>Hello World</h1></body>\n</html>\n",
+	"/home/kybe/secret/.hiddenfile": "This is a hidden file. Shh!\n"
+}));
+
 const commands: Record<string, CommandFn> = {
 	help: () => `Available commands: ${Object.keys(commands).join(', ')}`,
 	clear: () => { outputContainer.innerHTML = ""; return ""; },
@@ -42,12 +66,18 @@ const commands: Record<string, CommandFn> = {
 		return `${dayName}, ${day}.${monthNumber}.${year} (${monthName}) ${hours}:${minutes}:${seconds}.${ms}`;
 	},
 	whoami: () => "kybe",
-	cat: () => {
-		return `
-      /\\_/\\  
-     ( o.o ) 
-      > ^ <
-    `;
+	cat: (args = []) => {
+		if (args.length === 0) return "Usage: cat <filename>";
+
+		const filename = args[0];
+		const fullPath = currentDir === "/" ? `/${filename}` : `${currentDir}/${filename}`;
+		const content = fileContents[fullPath];
+
+		if (content === undefined) {
+			return `cat: ${filename}: No such file`;
+		}
+
+		return content;
 	},
 	calc: (args = []) => {
 		if (args.length === 0) return "Usage: calc <expression>";
@@ -293,6 +323,180 @@ const commands: Record<string, CommandFn> = {
 			"Cannot predict now", "Don't count on it", "My sources say no", "Very doubtful"
 		];
 		return answers[Math.floor(Math.random() * answers.length)];
+	},
+	history: () => {
+		if (commandHistory.length === 0) return "No command history";
+		return commandHistory.map((cmd, i) => `${i + 1}  ${cmd}`).join("\n");
+	},
+	alias: (args = []) => {
+		if (args.length === 0) {
+			if (Object.keys(aliases).length === 0) return "No aliases defined";
+			return Object.entries(aliases).map(([name, cmd]) => `${name}='${cmd}'`).join("\n");
+		}
+		if (args.length === 1 && args[0] === "clear") {
+			localStorage.setItem("aliases", JSON.stringify({}));
+			Object.keys(aliases).forEach(k => delete aliases[k]);
+			return "All aliases cleared";
+		}
+		if (args.length < 2) return "Usage: alias <name> <command> or alias clear";
+		const name = args[0];
+		const command = args.slice(1).join(" ");
+		aliases[name] = command;
+		localStorage.setItem("aliases", JSON.stringify(aliases));
+		return `Alias created: ${name}='${command}'`;
+	},
+	pwd: () => currentDir,
+	cd: (args = []) => {
+		if (args.length === 0) {
+			currentDir = "/home/kybe";
+			return "";
+		}
+		let target = args[0];
+
+		if (target === "..") {
+			if (currentDir === "/") return "";
+			const parts = currentDir.split("/").filter(p => p);
+			parts.pop();
+			currentDir = "/" + parts.join("/");
+			if (currentDir === "/") currentDir = "/";
+			return "";
+		}
+
+		if (target === "~") {
+			currentDir = "/home/kybe";
+			return "";
+		}
+
+		if (!target.startsWith("/")) {
+			target = currentDir === "/" ? `/${target}` : `${currentDir}/${target}`;
+		}
+
+		if (fileSystem[target]) {
+			currentDir = target;
+			return "";
+		}
+
+		return `cd: ${args[0]}: No such directory`;
+	},
+	ls: (args = []) => {
+		const showHidden = args.includes("-a");
+		const longFormat = args.includes("-l");
+
+		const items = fileSystem[currentDir] || [];
+		if (items.length === 0) return "";
+
+		if (longFormat) {
+			return items.map(item => {
+				const isDir = fileSystem[currentDir === "/" ? `/${item}` : `${currentDir}/${item}`];
+				const type = isDir ? "d" : "-";
+				const perms = isDir ? "rwxr-xr-x" : "rw-r--r--";
+				const size = isDir ? "4096" : Math.floor(Math.random() * 100000);
+				const date = "Oct  7 12:34";
+				if (!showHidden && item.startsWith(".")) return "";
+				return `${type}${perms} 1 kybe kybe ${size} ${date} ${item}`;
+			}).join("\n");
+		}
+
+		return items.join("  ");
+	},
+	rm: (args = []) => {
+		if (args.length === 0) return "Usage: rm <filename>";
+		const filename = args[0];
+
+		const dirContents = fileSystem[currentDir] || [];
+		const index = dirContents.indexOf(filename);
+
+		if (index === -1) {
+			return `rm: cannot remove '${filename}': No such file or directory`;
+		}
+
+		// Remove from directory
+		fileSystem[currentDir].splice(index, 1);
+
+		// Remove content
+		const fullPath = currentDir === "/" ? `/${filename}` : `${currentDir}/${filename}`;
+		delete fileContents[fullPath];
+		localStorage.setItem("fileContents", JSON.stringify(fileContents));
+
+		return "";
+	},
+
+	touch: (args = []) => {
+		if (args.length === 0) return "Usage: touch <filename>";
+		const filename = args[0];
+
+		if (filename.includes("/")) {
+			return "touch: cannot create file with path separators";
+		}
+
+		const dirContents = fileSystem[currentDir] || [];
+		if (dirContents.includes(filename)) {
+			return ""; // File already exists, just update timestamp (no-op here)
+		}
+
+		// Add file to directory
+		if (!fileSystem[currentDir]) {
+			fileSystem[currentDir] = [];
+		}
+		fileSystem[currentDir].push(filename);
+
+		// Initialize empty content
+		const fullPath = currentDir === "/" ? `/${filename}` : `${currentDir}/${filename}`;
+		fileContents[fullPath] = "";
+		localStorage.setItem("fileContents", JSON.stringify(fileContents));
+
+		return "";
+	},
+	morse: (args = []) => {
+		if (args.length === 0) return "Usage: morse <text>";
+		const text = args.join(" ").toUpperCase();
+		const morseCode: Record<string, string> = {
+			A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.",
+			H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.",
+			O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-",
+			V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+			"0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+			"5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
+			" ": "/"
+		};
+		return text.split("").map(c => morseCode[c] || c).join(" ");
+	},
+	base64: (args = []) => {
+		if (args.length < 2) return "Usage: base64 encode|decode <text>";
+		const operation = args[0].toLowerCase();
+		const text = args.slice(1).join(" ");
+
+		try {
+			if (operation === "encode") {
+				return btoa(text);
+			} else if (operation === "decode") {
+				return atob(text);
+			} else {
+				return "Usage: base64 encode|decode <text>";
+			}
+		} catch (e) {
+			return "Error: Invalid input for base64 operation";
+		}
+	},
+	typewriter: (args = []) => {
+		if (args.length === 0) return "Usage: typewriter <text>";
+		const text = args.join(" ");
+		const line = document.createElement('div');
+		line.classList.add('terminal-line');
+		outputContainer.appendChild(line);
+
+		let i = 0;
+		const interval = setInterval(() => {
+			if (i < text.length) {
+				line.textContent += text[i];
+				term.scrollTop = term.scrollHeight;
+				i++;
+			} else {
+				clearInterval(interval);
+			}
+		}, 50);
+
+		return "";
 	},
 	coinflip: () => Math.random() < 0.5 ? "Heads" : "Tails",
 };
