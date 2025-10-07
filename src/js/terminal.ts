@@ -9,6 +9,7 @@ type CommandFn = (args: string[]) => string;
 const commands: Record<string, CommandFn> = {
 	help: () => `Available commands: ${Object.keys(commands).join(', ')}`,
 	clear: () => { outputContainer.innerHTML = ""; return ""; },
+	matrix: () => { window.location.href = '/matrix.html'; return ''; },
 	echo: (args) => args.join(' ')
 };
 
