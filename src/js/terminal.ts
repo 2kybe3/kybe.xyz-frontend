@@ -9,7 +9,23 @@ type CommandFn = (args: string[]) => string;
 const commands: Record<string, CommandFn> = {
 	help: () => `Available commands: ${Object.keys(commands).join(', ')}`,
 	clear: () => { outputContainer.innerHTML = ""; return ""; },
-	matrix: () => { window.location.href = '/matrix.html'; return ''; },
+	matrix: (args = []) => {
+		const noRedirect = args.includes('no-redirect');
+		if (noRedirect) {
+			window.location.href = '/matrix.html';
+		} else {
+			window.location.href = '/matrix.html?redirect=true';
+		}
+		return '';
+	},
+	ping: (args = []) => {
+		if (args.length === 0) return 'Usage: ping <url>';
+		const url = args[0];
+		fetch(url, { method: 'HEAD' })
+			.then(() => print(`Ping to ${url} successful.`))
+			.catch(() => print(`Ping to ${url} failed.`));
+		return 'Pinging...';
+	},
 	echo: (args) => args.join(' ')
 };
 
