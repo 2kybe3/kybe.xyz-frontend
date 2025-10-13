@@ -45,6 +45,10 @@ const commands: Record<string, CommandFn> = {
 		}
 		return '';
 	},
+	ssh: () => {
+		window.location.href = '/ssh.html';
+		return '';
+	},
 	date: () => {
 		const now = new Date();
 
