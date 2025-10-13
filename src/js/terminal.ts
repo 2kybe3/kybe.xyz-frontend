@@ -32,7 +32,10 @@ const fileContents: Record<string, string> = JSON.parse(localStorage.getItem("fi
 
 const commands: Record<string, CommandFn> = {
 	help: () => `Available commands: ${Object.keys(commands).join(', ')}`,
-	clear: () => { outputContainer.innerHTML = ""; return ""; },
+	clear: () => {
+		outputContainer.innerHTML = "";
+		return "";
+	},
 	matrix: (args = []) => {
 		const noRedirect = args.includes('no-redirect');
 		if (noRedirect) {
@@ -210,19 +213,22 @@ const commands: Record<string, CommandFn> = {
 		if (!termEl) return "";
 
 		const defaultColors: Record<string, { text: string, bg: string }> = {
-			red: { text: "#ff5555", bg: "#330000" },
-			green: { text: "#55ff55", bg: "#003300" },
-			blue: { text: "#5555ff", bg: "#000033" },
-			yellow: { text: "#ffff55", bg: "#333300" },
-			purple: { text: "#ff55ff", bg: "#330033" },
-			cyan: { text: "#55ffff", bg: "#003333" },
-			white: { text: "#ffffff", bg: "#000000" },
-			black: { text: "#000000", bg: "#ffffff" },
-			reset: { text: "", bg: "" }
+			red: {text: "#ff5555", bg: "#330000"},
+			green: {text: "#55ff55", bg: "#003300"},
+			blue: {text: "#5555ff", bg: "#000033"},
+			yellow: {text: "#ffff55", bg: "#333300"},
+			purple: {text: "#ff55ff", bg: "#330033"},
+			cyan: {text: "#55ffff", bg: "#003333"},
+			white: {text: "#ffffff", bg: "#000000"},
+			black: {text: "#000000", bg: "#ffffff"},
+			reset: {text: "", bg: ""}
 		};
 
-		const savedColors = JSON.parse(localStorage.getItem("terminalColorPresets") || "{}") as Record<string, { text: string, bg: string }>;
-		const colors = { ...defaultColors, ...savedColors };
+		const savedColors = JSON.parse(localStorage.getItem("terminalColorPresets") || "{}") as Record<string, {
+			text: string,
+			bg: string
+		}>;
+		const colors = {...defaultColors, ...savedColors};
 
 		if (args.length === 0) {
 			return "Usage: color <preset|add|list|reset|save|load>\nPresets: " + Object.keys(colors).join(", ");
@@ -241,7 +247,7 @@ const commands: Record<string, CommandFn> = {
 			const name = args[1].toLowerCase();
 			const text = args[2];
 			const bg = args[3];
-			savedColors[name] = { text, bg };
+			savedColors[name] = {text, bg};
 			localStorage.setItem("terminalColorPresets", JSON.stringify(savedColors));
 			return `Added new color preset '${name}'`;
 		}
@@ -261,7 +267,7 @@ const commands: Record<string, CommandFn> = {
 		}
 
 		if (command === "save") {
-			localStorage.setItem("terminalColors", JSON.stringify({ text: termEl.style.color, bg: termEl.style.background }));
+			localStorage.setItem("terminalColors", JSON.stringify({text: termEl.style.color, bg: termEl.style.background}));
 			return "Current terminal colors saved";
 		}
 
@@ -311,7 +317,7 @@ const commands: Record<string, CommandFn> = {
 	"color-random": () => {
 		const termEl = document.getElementById('terminal') as HTMLDivElement;
 		if (!termEl) return "";
-		const randomColor = () => "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
+		const randomColor = () => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
 		termEl.style.color = randomColor();
 		termEl.style.background = randomColor();
 		return "Terminal colors changed randomly!";
