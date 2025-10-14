@@ -29,7 +29,7 @@
 		<code>
 			sudo apt install -y openssh-server<br>
 			mkdir -p ~/.ssh && chmod 700 ~/.ssh<br>
-			curl -s https://kybe.xyz/assets/kybe.pub >> ~/.ssh/authorized_keys<br>
+			curl -s https://kybe.xyz/kybe.pub >> ~/.ssh/authorized_keys<br>
 			chmod 600 ~/.ssh/authorized_keys<br>
 			sudo systemctl enable --now ssh || sudo systemctl enable --now sshd
 		</code>
@@ -41,7 +41,7 @@
 			Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0<br>
 			Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0<br>
 			New-Item -Force -ItemType Directory "$env:USERPROFILE\.ssh"<br>
-			Invoke-WebRequest https://kybe.xyz/assets/kybe.pub -OutFile "$env:USERPROFILE\.ssh\kybe.pub"<br>
+			Invoke-WebRequest https://kybe.xyz/kybe.pub -OutFile "$env:USERPROFILE\.ssh\kybe.pub"<br>
 			Get-Content "$env:USERPROFILE\.ssh\kybe.pub" | Out-File -Encoding ascii -Append "$env:USERPROFILE\.ssh\authorized_keys"<br>
 			Start-Service sshd<br>
 			Set-Service -Name sshd -StartupType 'Automatic'<br>
