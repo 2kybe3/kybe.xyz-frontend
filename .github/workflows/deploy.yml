@@ -32,6 +32,6 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add <(echo "$SSH_PRIVATE_KEY")
           
-          ssh-keyscan -H 10.0.10.101 >> ~/.ssh/known_hosts
+          ssh-keyscan -H 10.0.4.2 >> ~/.ssh/known_hosts
           
-          rsync -az --delete --no-perms --no-times --progress -e "ssh -o StrictHostKeyChecking=no" dist/ webuser@10.0.10.101:/var/www/runner
+          rsync -az --delete --no-perms --no-times --progress -e "ssh -o StrictHostKeyChecking=no" dist/ ops@10.0.4.2:/srv/runner
