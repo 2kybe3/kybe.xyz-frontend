@@ -570,7 +570,6 @@ function createPrompt() {
 }
 
 const welcome = document.createElement('div');
-welcome.textContent = "Type 'help' to get started.";
 welcome.classList.add('terminal-line');
 term.insertBefore(welcome, outputContainer);
 
