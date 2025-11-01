@@ -6,8 +6,6 @@ term.appendChild(outputContainer);
 
 type CommandFn = (args: string[]) => string;
 
-const commandHistory: string[] = JSON.parse(localStorage.getItem("commandHistory") || "[]");
-const aliases: Record<string, string> = JSON.parse(localStorage.getItem("aliases") || "{}");
 let currentDir = "/home/kybe";
 const fileSystem: Record<string, string[]> = {
 	"/": ["home", "usr", "var", "etc"],
@@ -49,6 +47,10 @@ const commands: Record<string, CommandFn> = {
 		window.location.href = '/ssh.html';
 		return '';
 	},
+	discord: () => {
+		window.location.href = "/dc";
+		return '';
+	}
 	date: () => {
 		const now = new Date();
 
@@ -72,7 +74,6 @@ const commands: Record<string, CommandFn> = {
 
 		return `${dayName}, ${day}.${monthNumber}.${year} (${monthName}) ${hours}:${minutes}:${seconds}.${ms}`;
 	},
-	whoami: () => "kybe",
 	cat: (args = []) => {
 		if (args.length === 0) return "Usage: cat <filename>";
 
@@ -97,27 +98,6 @@ const commands: Record<string, CommandFn> = {
 		}
 	},
 	echo: (args) => args.join(' '),
-	timer: (args = []) => {
-		if (args.length === 0) return "Usage: timer <seconds>";
-
-		const seconds = parseInt(args[0]);
-		if (isNaN(seconds) || seconds <= 0) return "Please provide a valid number of seconds";
-
-		let remaining = seconds;
-		print(`Timer started for ${seconds} second(s)`);
-
-		const interval = setInterval(() => {
-			if (remaining <= 0) {
-				print("Timer finished!");
-				clearInterval(interval);
-			} else {
-				print(`${remaining} second(s) remaining`);
-				remaining--;
-			}
-		}, 1000);
-
-		return "";
-	},
 	shake: () => {
 		const term = document.getElementById('terminal') as HTMLDivElement;
 		if (!term) return "";
@@ -180,37 +160,6 @@ const commands: Record<string, CommandFn> = {
 		}
 
 		return lines.join("\n");
-	},
-	todo: (args = []) => {
-		const todos: string[] = JSON.parse(localStorage.getItem("todos") || "[]");
-
-		if (args.length === 0) {
-			return todos.length ? todos.map((t, i) => `${i + 1}. ${t}`).join("\n") : "No todos yet";
-		}
-
-		const subCmd = args[0];
-		const rest = args.slice(1).join(" ");
-
-		switch (subCmd) {
-			case "add":
-				if (!rest) return "Usage: todo add <task>";
-				todos.push(rest);
-				localStorage.setItem("todos", JSON.stringify(todos));
-				return `Added: "${rest}"`;
-			case "remove":
-				const index = parseInt(rest) - 1;
-				if (isNaN(index) || index < 0 || index >= todos.length) return "Invalid index";
-				const removed = todos.splice(index, 1)[0];
-				localStorage.setItem("todos", JSON.stringify(todos));
-				return `Removed: "${removed}"`;
-			case "list":
-				return todos.length ? todos.map((t, i) => `${i + 1}. ${t}`).join("\n") : "No todos yet";
-			case "clear":
-				localStorage.setItem("todos", JSON.stringify([]));
-				return "Cleared all todos";
-			default:
-				return "Usage: todo add|remove|list|clear";
-		}
 	},
 	color: (args = []) => {
 		const termEl = document.getElementById('terminal') as HTMLDivElement;
@@ -286,29 +235,6 @@ const commands: Record<string, CommandFn> = {
 		if (args.length === 0) return "Usage: reverse <text>";
 		return args.join(" ").split("").reverse().join("");
 	},
-	mock: (args = []) => {
-		if (args.length === 0) return "Usage: mock <text>";
-		const text = args.join(" ");
-		return text
-			.split("")
-			.map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase())
-			.join("");
-	},
-	spin: () => {
-		const spinLine = document.createElement('div');
-		spinLine.classList.add('terminal-line');
-		outputContainer.appendChild(spinLine);
-
-		const frames = ["|", "/", "-", "\\"];
-		let i = 0;
-		setInterval(() => {
-			spinLine.textContent = frames[i % frames.length];
-			term.scrollTop = term.scrollHeight;
-			i++;
-		}, 100);
-
-		return '';
-	},
 	invert: () => {
 		const termEl = document.getElementById('terminal') as HTMLDivElement;
 		if (!termEl) return "";
@@ -333,27 +259,6 @@ const commands: Record<string, CommandFn> = {
 			"Cannot predict now", "Don't count on it", "My sources say no", "Very doubtful"
 		];
 		return answers[Math.floor(Math.random() * answers.length)];
-	},
-	history: () => {
-		if (commandHistory.length === 0) return "No command history";
-		return commandHistory.map((cmd, i) => `${i + 1}  ${cmd}`).join("\n");
-	},
-	alias: (args = []) => {
-		if (args.length === 0) {
-			if (Object.keys(aliases).length === 0) return "No aliases defined";
-			return Object.entries(aliases).map(([name, cmd]) => `${name}='${cmd}'`).join("\n");
-		}
-		if (args.length === 1 && args[0] === "clear") {
-			localStorage.setItem("aliases", JSON.stringify({}));
-			Object.keys(aliases).forEach(k => delete aliases[k]);
-			return "All aliases cleared";
-		}
-		if (args.length < 2) return "Usage: alias <name> <command> or alias clear";
-		const name = args[0];
-		const command = args.slice(1).join(" ");
-		aliases[name] = command;
-		localStorage.setItem("aliases", JSON.stringify(aliases));
-		return `Alias created: ${name}='${command}'`;
 	},
 	pwd: () => currentDir,
 	cd: (args = []) => {
@@ -450,26 +355,11 @@ const commands: Record<string, CommandFn> = {
 		}
 		fileSystem[currentDir].push(filename);
 
-		// Initialize empty content
 		const fullPath = currentDir === "/" ? `/${filename}` : `${currentDir}/${filename}`;
 		fileContents[fullPath] = "";
 		localStorage.setItem("fileContents", JSON.stringify(fileContents));
 
 		return "";
-	},
-	morse: (args = []) => {
-		if (args.length === 0) return "Usage: morse <text>";
-		const text = args.join(" ").toUpperCase();
-		const morseCode: Record<string, string> = {
-			A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.",
-			H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.",
-			O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-",
-			V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
-			"0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
-			"5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
-			" ": "/"
-		};
-		return text.split("").map(c => morseCode[c] || c).join(" ");
 	},
 	base64: (args = []) => {
 		if (args.length < 2) return "Usage: base64 encode|decode <text>";
@@ -487,26 +377,6 @@ const commands: Record<string, CommandFn> = {
 		} catch (e) {
 			return "Error: Invalid input for base64 operation";
 		}
-	},
-	typewriter: (args = []) => {
-		if (args.length === 0) return "Usage: typewriter <text>";
-		const text = args.join(" ");
-		const line = document.createElement('div');
-		line.classList.add('terminal-line');
-		outputContainer.appendChild(line);
-
-		let i = 0;
-		const interval = setInterval(() => {
-			if (i < text.length) {
-				line.textContent += text[i];
-				term.scrollTop = term.scrollHeight;
-				i++;
-			} else {
-				clearInterval(interval);
-			}
-		}, 50);
-
-		return "";
 	},
 	coinflip: () => Math.random() < 0.5 ? "Heads" : "Tails",
 };
