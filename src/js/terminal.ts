@@ -50,7 +50,7 @@ const commands: Record<string, CommandFn> = {
 	discord: () => {
 		window.location.href = "/dc";
 		return '';
-	}
+	},
 	date: () => {
 		const now = new Date();
 
